@@ -1,5 +1,5 @@
 # final_project.com
-## My final project on python web.
+My final project on python web.
 Theme: Team Fortress 2 (very originally, lol)
 
 ## What I even want to do?
