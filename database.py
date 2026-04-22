@@ -26,43 +26,13 @@ def create_db():
 
     conn.commit()
 
-def add_task(task_text, user_id):
-    conn = sqlite3.connect("todo.db")
-    cursor = conn.cursor()
-
-    cursor.execute("INSERT INTO task (text, user_id) VALUES (?,?)", (task_text, user_id))
-    conn.commit()
-    conn.close()
-
-def get_tasks():
-    conn = sqlite3.connect("todo.db")
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM task")
-    tasks = cursor.fetchall()
-    return tasks
-
-def delete_task(task_id):
-    conn = sqlite3.connect("todo.db")
-    cursor = conn.cursor()
-
-    cursor.execute("DELETE FROM task WHERE id = ?", (task_id,))
-    conn.commit()
-
-def change_task_status(task_id):
-    conn = sqlite3.connect("todo.db")
-    cursor = conn.cursor()
-
-    cursor.execute("UPDATE task SET is_done = 1-is_done WHERE id = ?", (task_id,))
-    conn.commit()
-
 def add_user(login, password):
     conn = sqlite3.connect("todo.db")
     cursor = conn.cursor()
     hashed_password = generate_password_hash(password)
 
     cursor.execute("INSERT INTO user (login, password) VALUES (?, ?)", (login, hashed_password))
-    print("Создан пользователь" + login)
+    print("Created user " + login)
     conn.commit()
 
 def is_user_exists(login):

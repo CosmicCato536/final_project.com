@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import database
-import test
 
 app = Flask(__name__)
 app.secret_key = "384htoeirgnhufidjkkejhiwfdikwejufdew"
@@ -10,24 +9,7 @@ def index():
     if "user_id" not in session:
         return redirect(url_for("login"))
     
-    tasks= database.get_tasks()
-    return render_template("index.html", tasks=tasks, user_login=session["login"])
-
-@app.route('/add', methods=['POST'])
-def add():
-    task_text = request.form.get('task-text')
-    user_id = session["user_id"]
-    if task_text:
-        database.add_task(task_text, user_id)
-    return redirect(url_for('index'))
-
-@app.route("/delete", methods=['POST'])
-def delete():
-    task_id = request.form.get('task-id')
-
-    if task_id:
-        database.delete_task(task_id)
-    return redirect(url_for('index'))
+    return render_template("index.html", user_login=session["login"])
 
 @app.route('/change_status', methods=['POST'])
 def change_status():
@@ -48,14 +30,14 @@ def register():
         errors = []
         # проверка существования пользователя
         if database.is_user_exists(login):
-            errors.append("Такой пользователь уже существует")
+            errors.append("This user is already exists, try another username.")
         # проверка на одинаковость паролей
         if pass1 != pass2:
-            errors.append("Пароли НЕ совпадают")
+            errors.append("Passwords don`t match.")
 
         # проверка качества пароля
         if len(pass1) < 4:
-            errors.append("Пароль должен содержать не менее 4 символов")
+            errors.append("The password must contain 4 characters and more.")
         
         if len(errors) == 0:
             database.add_user(login, pass1)
@@ -76,7 +58,7 @@ def login():
         if auth_user == None:
             return render_template("login.html", errors=["Неверный логин или пароль"])
         else:
-            print('Успешная авторизация')
+            print('Successful registration!')
             session["user_id"] = auth_user["user_id"]
             session["login"] = auth_user["user_login"]
             return redirect(url_for('index'))
