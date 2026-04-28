@@ -5,7 +5,7 @@ def create_db():
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
 
-    # 1. Таблица пользователей
+    # Таблица пользователей (без изменений)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS user (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14,7 +14,7 @@ def create_db():
         )
     ''')
 
-    # 2. Таблица способностей
+    # Таблица способностей
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS abilities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,7 +22,7 @@ def create_db():
         )
     ''')
 
-    # 3. Таблица оружия
+    # Таблица оружия (добавим её, если её еще нет)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS weapons (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,35 +31,34 @@ def create_db():
         )
     ''')
 
-    # 4. Таблица персонажей (без ID способностей и оружия)
+    # Обновленная таблица персонажей (БЕЗ ability_id и weapon_id)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS character (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name VARCHAR(1000) NOT NULL DEFAULT '',
             img_path VARCHAR(1000) NOT NULL DEFAULT '',
+            img_name VARCHAR(1000) NOT NULL DEFAULT '',
             likes INTEGER DEFAULT 0,
             hp INTEGER DEFAULT 0
         )
     ''')
 
-    # --- СВЯЗУЮЩИЕ ТАБЛИЦЫ (МНОГИЕ КО МНОГИМ) ---
+    # --- ТАБЛИЦЫ СВЯЗЕЙ ---
 
-    # 5. Связь персонажей и способностей
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS character_abilities (
-            character_id INTEGER NOT NULL,
-            ability_id INTEGER NOT NULL,
+            character_id INTEGER,
+            ability_id INTEGER,
             FOREIGN KEY (character_id) REFERENCES character(id) ON DELETE CASCADE,
             FOREIGN KEY (ability_id) REFERENCES abilities(id) ON DELETE CASCADE,
             PRIMARY KEY (character_id, ability_id)
         )
     ''')
 
-    # 6. Связь персонажей и оружия
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS character_weapons (
-            character_id INTEGER NOT NULL,
-            weapon_id INTEGER NOT NULL,
+            character_id INTEGER,
+            weapon_id INTEGER,
             FOREIGN KEY (character_id) REFERENCES character(id) ON DELETE CASCADE,
             FOREIGN KEY (weapon_id) REFERENCES weapons(id) ON DELETE CASCADE,
             PRIMARY KEY (character_id, weapon_id)
