@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Регистрация</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/log-reg.css') }}">
 </head>
 <body>
-    <h1>Регистрация</h1>
-    <form action="/register" method="POST">
+    <img src="{{ url_for('static', filename='img/tf2.gif') }}" alt="logo gif" width=64 height=64>
+    <h1>Registration</h1>
+    <form class="labels" action="/register" method="POST">
         <div>
             <label for="">Логин:</label>
             <input type="text" name="login">

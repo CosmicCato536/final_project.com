@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='log-reg.css') }}">
 </head>
 <body>
-    <h1>Вход | sign in</h1>
-    <form action="/login" method="POST">
+    <img src="{{ url_for('static', filename='img/tf2.gif') }}" alt="logo gif" width=64 height=64>
+    <h1>Sign in</h1>
+    <form class="labels" action="/login" method="POST">
         <div>
             <label for="">Логин:</label>
             <input type="text" name="login">

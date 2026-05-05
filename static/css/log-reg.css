@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Changa+One:ital@0;1&display=swap');
+.labels {
+    border: 5px solid rgb(186, 85, 14);
+    padding: 10px;
+    border-radius: 20px;
+    
+}
+
+body{background-color: rgb(37, 35, 36);}
+
+h1 {font-family: "Changa One", sans-serif;
+color: white}
+
+.error p{color:red}
