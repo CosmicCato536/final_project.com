@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вход</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='log-reg.css') }}">
+    <title>Welcome back!(or not)</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/log-reg.css') }}">
 </head>
 <body>
     <img src="{{ url_for('static', filename='img/tf2.gif') }}" alt="logo gif" width=64 height=64>
     <h1>Sign in</h1>
     <form class="labels" action="/login" method="POST">
         <div>
-            <label for="">Логин:</label>
+            <label for="">Login:</label>
             <input type="text" name="login">
         </div>
         <div>
-            <label for="">Пароль:</label>
+            <label for="">Enter password:</label>
             <input type="password" name="password">
         </div>
         <div>
-            <input type="submit" value="Войти">
+            <input type="submit" value="Log in">
         </div>
     </form>
     <div class="error">
@@ -27,5 +27,6 @@
         <p>{{ error }}</p>
         {% endfor %}
     </div>
+    <h3><a href="/register">Create a new account</a></h3>
 </body>
 </html>

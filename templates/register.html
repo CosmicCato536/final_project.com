@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Регистрация</title>
+    <title>U are signing up lol</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/log-reg.css') }}">
 </head>
 <body>
     <img src="{{ url_for('static', filename='img/tf2.gif') }}" alt="logo gif" width=64 height=64>
-    <h1>Registration</h1>
+    <h1>Sign up</h1>
     <form class="labels" action="/register" method="POST">
         <div>
-            <label for="">Логин:</label>
+            <label for="">Login:</label>
             <input type="text" name="login">
         </div>
         <div>
-            <label for="">Пароль:</label>
+            <label for="">Password</label>
             <input type="password" name="pass1">
         </div>
         <div>
-            <label for="">Подтверждение пароля:</label>
+            <label for="">Confirm the password:</label>
             <input type="password" name="pass2">
         </div>
         <div>
-            <input type="submit" value="Регистрация">
+            <input type="submit" value="Sign up">
         </div>
     </form>
     <div class="error">
@@ -31,5 +31,6 @@
         <p>{{ error }}</p>
         {% endfor %}
     </div>
+    <h3><a href="/login">I have an account, take me back</a></h3>
 </body>
 </html>
