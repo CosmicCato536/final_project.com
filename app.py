@@ -11,6 +11,12 @@ def index():
     
     return render_template("index.html", user_login=session["login"])
 
+@app.route('/info/<int:char_id>')
+def info(char_id):
+    # Берем данные персонажа и его способностей из базы
+    char = database.get_char_details(char_id) 
+    return render_template('info.html', char=char)
+
 @app.route('/change_status', methods=['POST'])
 def change_status():
     task_id = request.form.get('task-id')
@@ -62,6 +68,8 @@ def login():
             session["user_id"] = auth_user["user_id"]
             session["login"] = auth_user["user_login"]
             return redirect(url_for('index'))
+        
+
 
 @app.route("/logout")
 def logout():

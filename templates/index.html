@@ -11,14 +11,71 @@
     }
     header{background-color: rgb(37, 35, 36);
             padding: 40px 20px;
+    }
+        body{background-color: rgb(57, 52, 46);}
+        footer{background-color: black;
+            color: white}
+        header h1{color: rgb(186, 85, 14);}
+        header h3{color: rgb(136, 63, 12); 
+                display:block;
+                margin-top: 20px;}
+    /* Основной контейнер 3х3 */
+.character-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 200px); /* 3 колонки по 200px */
+    gap: 20px;                               /* Расстояние между кнопками */
+    justify-content: center;                 /* В центре экрана */
+    background: #2b2622;                     /* Цвет корпуса панели */
+    padding: 25px;
+    border: 8px solid #5a5245;               /* Железная рамка */
+    margin: 40px auto;
+    width: fit-content;
 }
-    body{background-color: rgb(57, 52, 46);}
-    footer{background-color: black;
-           color: white}
-    header h1{color: rgb(186, 85, 14);}
-    header h3{color: rgb(136, 63, 12); 
-              display:block;
-              margin-top: 20px;}
+
+/* Карточка персонажа */
+.char-card {
+    background: #3c352e;
+    border: 4px solid #ba550e;               /* Оранжевая обводка */
+    padding: 10px;
+    text-align: center;
+}
+
+/* Твои картинки из Paint */
+.char-card img {
+    width: 100%;                             /* Растягиваем на всю ширину карточки */
+    height: 150px;                           /* Фиксируем высоту */
+    object-fit: contain;                     /* Сохраняем пропорции, чтобы не сплющило */
+    image-rendering: pixelated;              /* Чтобы нарезка была четкой */
+    background: #1a1715;                     /* Фон под картинкой, если она маленькая */
+}
+
+/* Блок с кнопками */
+.controls {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.like-btn, .info-btn {
+    flex: 1;
+    background: #ba550e;
+    color: white;
+    border: none;
+    padding: 8px 5px;
+    font-family: "Changa One", sans-serif;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.info-btn {
+    background: #5a5245; /* Сделаем кнопку инфо более серой */
+}
+
+.like-btn.active {
+    background: #ff5722 !important; /* Подсветка нашего лайка */
+    box-shadow: 0 0 10px #ff5722;
+}
     </style>
 </head>
 <body>
@@ -27,6 +84,23 @@
             <h1>Just TF2 site</h1>
             <h3>By CosmicCato536</h3>
     </header>
+    <main>
+        <div class="character-grid">
+        {% for char in characters %}
+        <div class="char-card">
+            <img src="{{ char[2] }}" alt="Character"> <!-- Если берешь по индексу (3-я колонка) -->
+            <!-- ИЛИ, если используешь Row Factory: -->
+            <!-- <img src="{{ char.img_path }}"> -->
+            
+            <div class="controls">
+                <a href="/like/{{ char[0] }}" class="like-btn">❤️ {{ char[4] }}</a>
+                <a href="/info/{{ char[0] }}" class="info-btn">INFO</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    </div>
+    </main>
     <footer></footer>
 </body>
 </html>
