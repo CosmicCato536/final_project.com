@@ -67,6 +67,13 @@ def create_db():
         )
     ''')
 
+    cursor.execute('''
+CREATE TABLE IF NOT EXISTS user_likes (
+    user_id INTEGER,
+    char_id INTEGER,
+    PRIMARY KEY (user_id, char_id) 
+)''')
+
     conn.commit()
     conn.close()
 
