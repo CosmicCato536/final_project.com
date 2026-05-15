@@ -4,103 +4,196 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TF2 Site</title>
+    <!-- Подключаем иконки Font Awesome для отображения пальца вверх -->
+    <link rel="stylesheet" href="https://cloudflare.com">
     <style>
-    *  {margin: 0;
-        padding: 0; 
-        box-sizing: border-box;
-    }
-    header{background-color: rgb(37, 35, 36);
+        * {
+            margin: 0;
+            padding: 0; 
+            box-sizing: border-box;
+        }
+        body {
+            background-color: rgb(57, 52, 46);
+            font-family: sans-serif;
+        }
+        header {
+            background-color: rgb(37, 35, 36);
             padding: 40px 20px;
-    }
-        body{background-color: rgb(57, 52, 46);}
-        footer{background-color: black;
-            color: white}
-        header h1{color: rgb(186, 85, 14);}
-        header h3{color: rgb(136, 63, 12); 
-                display:block;
-                margin-top: 20px;}
-    /* Основной контейнер 3х3 */
-.character-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 200px); /* 3 колонки по 200px */
-    gap: 20px;                               /* Расстояние между кнопками */
-    justify-content: center;                 /* В центре экрана */
-    background: #2b2622;                     /* Цвет корпуса панели */
-    padding: 25px;
-    border: 8px solid #5a5245;               /* Железная рамка */
-    margin: 40px auto;
-    width: fit-content;
-}
+            position: relative;
+        }
+        footer {
+            background-color: black;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        header h1 {
+            color: rgb(186, 85, 14);
+        }
+        header h3 {
+            color: rgb(136, 63, 12); 
+            display: block;
+            margin-top: 20px;
+        }
+        .logout-btn {
+            position: absolute;
+            top: 40px;
+            right: 20px;
+            background: #5a5245;
+            color: white;
+            padding: 8px 15px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .logout-btn:hover {
+            background: #b83838;
+        }
+        
+        /* Сетка 3х3 */
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 240px); /* Ровно 3 колонки */
+            gap: 20px;                               
+            justify-content: center;                 
+            background: #2b2622;                     
+            padding: 25px;
+            border: 8px solid #5a5245;               
+            margin: 40px auto;
+            width: fit-content;
+        }
 
-/* Карточка персонажа */
-.char-card {
-    background: #3c352e;
-    border: 4px solid #ba550e;               /* Оранжевая обводка */
-    padding: 10px;
-    text-align: center;
-}
+        /* Карточка персонажа */
+        .char-card {
+            background: #3c352e;
+            border: 4px solid #ba550e;               
+            padding: 15px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
 
-/* Твои картинки из Paint */
-.char-card img {
-    width: 100%;                             /* Растягиваем на всю ширину карточки */
-    height: 150px;                           /* Фиксируем высоту */
-    object-fit: contain;                     /* Сохраняем пропорции, чтобы не сплющило */
-    image-rendering: pixelated;              /* Чтобы нарезка была четкой */
-    background: #1a1715;                     /* Фон под картинкой, если она маленькая */
-}
+        /* Название класса */
+        .char-name {
+            color: #ebe2ca;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
 
-/* Блок с кнопками */
-.controls {
-    display: flex;
-    gap: 5px;
-    margin-top: 10px;
-}
+        /* Изображение персонажа из базы данных */
+        .char-card img {
+            width: 100%;                             
+            height: 160px;                           
+            object-fit: contain;                     
+            image-rendering: pixelated;              
+            background: #1a1715;                     
+            margin-bottom: 12px;
+        }
 
-.like-btn, .info-btn {
-    flex: 1;
-    background: #ba550e;
-    color: white;
-    border: none;
-    padding: 8px 5px;
-    font-family: "Changa One", sans-serif;
-    text-decoration: none;
-    font-size: 14px;
-    cursor: pointer;
-}
+        /* Контейнер кнопок (в одну линию) */
+        .controls {
+            display: flex;
+            gap: 6px;             
+            margin-top: auto;
+            width: 100%;          
+        }
 
-.info-btn {
-    background: #5a5245; /* Сделаем кнопку инфо более серой */
-}
+        /* Базовые стили кнопок */
+        .like-btn, .desc-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: none;
+            padding: 8px 2px;     
+            font-size: 11px;      
+            font-weight: bold;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
 
-.like-btn.active {
-    background: #ff5722 !important; /* Подсветка нашего лайка */
-    box-shadow: 0 0 10px #ff5722;
-}
+        /* Маленькая кнопка LIKE слева */
+        .like-btn {
+            background: #ba550e;
+            flex: 0 0 42%;        /* Чуть увеличили ширину под цифру */
+            gap: 5px;
+        }
+        .like-btn:hover {
+            background: #d15f10;
+        }
+
+        /* Большая кнопка DESCRIPTION справа */
+        .desc-btn {
+            background: #5a5245; 
+            flex: 0 0 58%;        /* Занимает оставшуюся ширину */
+        }
+        .desc-btn:hover {background: #6e6454;
+        }
+
+        /* Зеленая подсветка выбранного лайка */
+        .like-btn.active {
+            background: #5b7a3a; 
+        }
+        .like-btn.active:hover {
+            background: #47612d;
+        }
+        
+        /* Блок под счетчик лайков */
+        .like-count {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 11px;
+        }
     </style>
 </head>
 <body>
     <header>
-        <img src="{{ url_for('static', filename='img/tf2.gif') }}" alt="logo gif" height=64 width=64>
-            <h1>Just TF2 site</h1>
-            <h3>By CosmicCato536</h3>
+        <img src="{{ url_for('static', filename='img/tf2.gif') }}" alt="logo gif" height="64" width="64">
+        <h1>Just TF2 site</h1>
+        <h3>By CosmicCato536</h3>
+        <a href="/logout" class="logout-btn">Logout</a>
     </header>
+    
     <main>
         <div class="character-grid">
-        {% for char in characters %}
-        <div class="char-card">
-            <img src="{{ char[2] }}" alt="Character"> <!-- Если берешь по индексу (3-я колонка) -->
-            <!-- ИЛИ, если используешь Row Factory: -->
-            <!-- <img src="{{ char.img_path }}"> -->
-            
-            <div class="controls">
-                <a href="/like/{{ char[0] }}" class="like-btn">❤️ {{ char[4] }}</a>
-                <a href="/info/{{ char[0] }}" class="info-btn">INFO</a>
+            <!-- Автоматический перебор всех 9 персонажей из таблицы character -->
+            {% for char in characters %}
+            <div class="char-card">
+                <!-- char[1] — имя класса (Scout, Soldier...) -->
+                <div class="char-name">{{ char[1] }}</div>
+                
+                <!-- char[2] — готовый путь из базы (static/img/scout.png...) -->
+                <img src="{{ char[2] }}" alt="Character Image">
+                
+                <div class="controls">
+                    <!-- Сверяем ID персонажа char[0] с голосом текущего пользователя user_vote -->
+                    <!-- Внутри тега <span> выводим количество лайков из базы char[3] -->
+                    {% if user_vote == char[0] %}
+                        <a href="/like/{{ char[0] }}" class="like-btn active">
+                            <i class="fa-solid fa-thumbs-up"></i> LIKE <span class="like-count">{{ char[3] }}</span>
+                        </a>
+                    {% else %}
+                        <a href="/like/{{ char[0] }}" class="like-btn">
+                            <i class="fa-solid fa-thumbs-up"></i> LIKE <span class="like-count">{{ char[3] }}</span>
+                        </a>
+                    {% endif %}
+                    
+                    <!-- Кнопка Description передает ID персонажа char[0] -->
+                    <a href="/description/{{ char[0] }}" class="desc-btn">Description</a>
+                </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-    </div>
     </main>
+    
     <footer></footer>
 </body>
 </html>
