@@ -6,18 +6,19 @@ app.secret_key = "384htoeirgnhufidjkkejhiwfdikwejufdew"
 
 @app.route('/')
 def index():
-    # Если зашли инкогнито или база пустая — сразу на логин
     if "user_id" not in session or "user_login" not in session:
         return redirect('/login')
 
     user_vote = database.get_user_vote(session["user_id"])
     chars_list = database.get_characters()
-    user_login = session["user_login"] # Убрали дефолтного Солдата, теперь тут строго имя из БД
+    user_login = session["user_login"]
     
     return render_template('index.html', characters=chars_list, user_vote=user_vote, username=user_login)
 
 @app.route('/info/<int:char_id>')
 def info(char_id):
+    if "user_id" not in session:
+        return redirect('/login')
     char = database.get_char_details(char_id) 
     return render_template('info.html', char=char)
 

@@ -5,171 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TF2 Site</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0; 
-            box-sizing: border-box;
-        }
-        body {
-            background-color: rgb(57, 52, 46);
-            font-family: sans-serif;
-        }
-        header {
-            background-color: rgb(37, 35, 36);
-            padding: 40px 20px;
-            position: relative;
-        }
-        footer {
-            background-color: black;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        header h1 {
-            color: rgb(186, 85, 14);
-        }
-        header h3 {
-            color: rgb(136, 63, 12); 
-            display: block;
-            margin-top: 20px;
-        }
-        .user-dropdown {
-            position: absolute;
-            top: 40px;
-            right: 20px;
-            display: inline-block;
-            z-index: 100;
-        }
-        .dropdown-btn {
-            background: #ba550e;
-            color: #ebe2ca;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: bold;
-            text-transform: uppercase;
-            border: 2px solid #5a5245;
-            cursor: pointer;
-            letter-spacing: 1px;
-        }
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: #3c352e;
-            min-width: 180px;
-            border: 3px solid #ba550e;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
-        }
-        .dropdown-content a {
-            color: #ebe2ca;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            font-size: 13px;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-bottom: 1px solid #5a5245;
-        }
-        .dropdown-content a:last-child {
-            border-bottom: none;
-        }
-        .dropdown-content a:hover {
-            background-color: #5a5245;
-            color: white;
-        }
-        .dropdown-content a.logout-item:hover {
-            background-color: #b83838;
-        }
-        .user-dropdown:hover .dropdown-content {
-            display: block;
-        }
-        .user-dropdown:hover .dropdown-btn {
-            background: #d15f10;
-        }
-        .character-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 240px);
-            gap: 20px;                               
-            justify-content: center;                 
-            background: #2b2622;                     
-            padding: 25px;
-            border: 8px solid #5a5245;               
-            margin: 40px auto;
-            width: fit-content;
-        }
-        .char-card {
-            background: #3c352e;
-            border: 4px solid #ba550e;               
-            padding: 15px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .char-name {
-            color: #ebe2ca;
-            font-size: 18px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
-        }
-        .char-card img {
-            width: 100%;                             
-            height: 160px;                           
-            object-fit: contain;                     
-            image-rendering: pixelated;              
-            background: #1a1715;                     
-            margin-bottom: 12px;
-        }
-        .controls {
-            display: flex;
-            gap: 6px;             
-            margin-top: auto;
-            width: 100%;          
-        }
-        .like-btn, .desc-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            border: none;
-            padding: 8px 2px;     
-            font-size: 11px;      
-            font-weight: bold;
-            text-transform: uppercase;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .like-btn {
-            background: #ba550e;
-            flex: 0 0 42%;        
-            gap: 5px;
-        }
-        .like-btn:hover {
-            background: #d15f10;
-        }
-        .desc-btn {
-            background: #5a5245; 
-            flex: 0 0 58%;        
-        }
-        .desc-btn:hover {
-            background: #6e6454;
-        }
-        .like-btn.active {
-            background: #5b7a3a; 
-        }
-        .like-btn.active:hover {
-            background: #47612d;
-        }
-        .like-count {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 1px 5px;
-            border-radius: 3px;
-            font-family: monospace;
-            font-size: 11px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: rgb(57, 52, 46); font-family: sans-serif; }
+        header { background-color: rgb(37, 35, 36); padding: 40px 20px; position: relative; }
+        footer { background-color: black; color: white; padding: 20px; text-align: center; }
+        header h1 { color: rgb(186, 85, 14); }
+        header h3 { color: rgb(136, 63, 12); display: block; margin-top: 20px; }
+        .user-dropdown { position: absolute; top: 40px; right: 20px; display: inline-block; z-index: 100; }
+        .dropdown-btn { background: #ba550e; color: #ebe2ca; padding: 10px 20px; font-size: 14px; font-weight: bold; text-transform: uppercase; border: 2px solid #5a5245; cursor: pointer; letter-spacing: 1px; }
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: #3c352e; min-width: 180px; border: 3px solid #ba550e; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5); }
+        .dropdown-content a { color: #ebe2ca; padding: 12px 16px; text-decoration: none; display: block; font-size: 13px; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #5a5245; }
+        .dropdown-content a:last-child { border-bottom: none; }
+        .dropdown-content a:hover { background-color: #5a5245; color: white; }
+        .dropdown-content a.logout-item:hover { background-color: #b83838; }
+        .user-dropdown:hover .dropdown-content { display: block; }
+        .user-dropdown:hover .dropdown-btn { background: #d15f10; }
+        .character-grid { display: grid; grid-template-columns: repeat(3, 240px); gap: 20px; justify-content: center; background: #2b2622; padding: 25px; border: 8px solid #5a5245; margin: 40px auto; width: fit-content; }
+        .char-card { background: #3c352e; border: 4px solid #ba550e; padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+        .char-name { color: #ebe2ca; font-size: 18px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .char-card img { width: 100%; height: 160px; object-fit: contain; image-rendering: pixelated; background: #1a1715; margin-bottom: 12px; }
+        .controls { display: flex; gap: 6px; margin-top: auto; width: 100%; }
+        .like-btn, .desc-btn { display: inline-flex; align-items: center; justify-content: center; color: white; border: none; padding: 8px 2px; font-size: 11px; font-weight: bold; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: background 0.2s; }
+        .like-btn { background: #ba550e; flex: 0 0 42%; gap: 5px; }
+        .like-btn:hover { background: #d15f10; }
+        .desc-btn { background: #5a5245; flex: 0 0 58%; }
+        .desc-btn:hover { background: #6e6454; }
+        .like-btn.active { background: #5b7a3a; }
+        .like-btn.active:hover { background: #47612d; }
+        .like-count { background: rgba(0, 0, 0, 0.3); padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -189,30 +52,27 @@
     </header>
     
     <main>
-    <div class="character-grid">
-        {% for char in characters %}
-        <div class="char-card">
-            <div class="char-name">{{ char[1] }}</div>
-            <img src="{{ char[2] }}" alt="Character Image">
-            
-            <div class="controls">
-                {% if user_vote == char[0] %}
-                    <a href="/like/{{ char[0] }}" class="like-btn active">
-                        LIKE <span class="like-count">{{ char[3] }}</span>
-                    </a>
-                {% else %}
-                    <a href="/like/{{ char[0] }}" class="like-btn">
-                        LIKE <span class="like-count">{{ char[3] }}</span>
-                    </a>
-                {% endif %}
-                <a href="/info/{{ char[0] }}" class="desc-btn">Description</a>
+        <div class="character-grid">
+            {% for char in characters %}
+            <div class="char-card">
+                <div class="char-name">{{ char[1] }}</div>
+                <img src="{{ char[2] }}" alt="Character Image">
+                <div class="controls">
+                    {% if user_vote|string == char[0]|string %}
+                        <a href="/like/{{ char[0] }}" class="like-btn active">
+                            LIKE <span class="like-count">{{ char[3] }}</span>
+                        </a>
+                    {% else %}
+                        <a href="/like/{{ char[0] }}" class="like-btn">
+                            LIKE <span class="like-count">{{ char[3] }}</span>
+                        </a>
+                    {% endif %}
+                    <a href="/info/{{ char[0] }}" class="desc-btn">Description</a>
+                </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-</main>
-
-    
+    </main>
     <footer></footer>
 </body>
 </html>

@@ -141,7 +141,7 @@ def get_user_vote(user_id):
     cursor.execute("SELECT voted_for FROM user WHERE id = ?", (user_id,))
     res = cursor.fetchone()
     conn.close()
-    return res[0] if res else 0
+    return res[0] if res and res[0] is not None else 0
 
 
 def toggle_like(user_id, char_id):
@@ -150,7 +150,7 @@ def toggle_like(user_id, char_id):
     
     cursor.execute("SELECT voted_for FROM user WHERE id = ?", (user_id,))
     res = cursor.fetchone()
-    old_vote = res[0] if res else 0
+    old_vote = res[0] if res and res[0] is not None else 0
 
     if old_vote == char_id:
         cursor.execute("UPDATE character SET likes = likes - 1 WHERE id = ?", (char_id,))
@@ -166,12 +166,12 @@ def toggle_like(user_id, char_id):
     
     cursor.execute("SELECT 1 FROM user_achievements WHERE user_id = ? AND achievement_id = 1", (user_id,))
     if not cursor.fetchone():
-        cursor.execute("INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, 1)", (user_id, 1))
+        cursor.execute("INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)", (user_id, 1))
         
     if char_id == 7:
         cursor.execute("SELECT 1 FROM user_achievements WHERE user_id = ? AND achievement_id = 2", (user_id,))
         if not cursor.fetchone():
-            cursor.execute("INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, 2)", (user_id, 2))
+            cursor.execute("INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)", (user_id, 2))
             
     conn.commit()
     conn.close()
@@ -265,7 +265,27 @@ def get_char_details(char_id):
     conn.close()
     return char_data
 
+def add_admin():
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    
+    login = "CosmicCato536"
+    password = "pswrd64198698"
+    
+    cursor.execute("SELECT * FROM user WHERE login = ?", (login,))
+    if cursor.fetchone():
+        print(f"User {login} already exists!")
+        conn.close()
+        return
+
+    hashed_password = generate_password_hash(password)
+    cursor.execute("INSERT INTO user (login, password) VALUES (?, ?)", (login, hashed_password))
+    conn.commit()
+    conn.close()
+    print(f"Admin account '{login}' successfully created!")
+
 if __name__ == "__main__":
     create_db()
     fill_characters()
     fill_achievements()
+    add_admin()
