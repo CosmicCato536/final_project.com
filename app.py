@@ -8,25 +8,24 @@ app.secret_key = "384htoeirgnhufidjkkejhiwfdikwejufdew"
 def index():
     if "user_id" not in session or "user_login" not in session:
         return redirect('/login')
-
     user_vote = database.get_user_vote(session["user_id"])
     chars_list = database.get_characters()
     user_login = session["user_login"]
-    
     return render_template('index.html', characters=chars_list, user_vote=user_vote, username=user_login)
 
 @app.route('/info/<int:char_id>')
 def info(char_id):
     if "user_id" not in session:
         return redirect('/login')
-    char = database.get_char_details(char_id) 
-    return render_template('info.html', char=char)
+    char_data = database.get_char_details(char_id) 
+    if not char_data:
+        return redirect('/')
+    return render_template('info.html', char=char_data)
 
 @app.route('/like/<int:char_id>')
 def like(char_id):
     if "user_id" not in session:
         return redirect('/login')
-        
     database.toggle_like(session["user_id"], char_id)
     return redirect('/')
 
@@ -36,13 +35,10 @@ def login():
         user_login = request.form.get('login')
         user_password = request.form.get('password')
         errors = []
-
         if not user_login or not user_password:
             errors.append("Please fill in all fields!")
             return render_template('login.html', errors=errors)
-
         auth_result = database.auth_user(user_login, user_password)
-
         if auth_result == -1:
             errors.append("Invalid password!")
             return render_template('login.html', errors=errors)
@@ -53,7 +49,6 @@ def login():
             session["user_id"] = auth_result["user_id"]
             session["user_login"] = auth_result["user_login"]
             return redirect('/')
-
     return render_template('login.html', errors=[])
 
 @app.route("/register", methods=["POST", "GET"])
@@ -65,20 +60,15 @@ def register():
         pass1 = request.form.get("pass1")
         pass2 = request.form.get("pass2")
         errors = []
-
         if not login or not pass1 or not pass2:
             errors.append("Please fill in all fields!")
             return render_template("register.html", errors=errors)
-
         if database.is_user_exists(login):
             errors.append("This user already exists, try another username.")
-            
         if pass1 != pass2:
             errors.append("Passwords don't match.")
-
         if len(pass1) < 4:
             errors.append("The password must contain 4 characters and more.")
-        
         if len(errors) == 0:
             database.add_user(login, pass1)
             return redirect('/login')
@@ -89,7 +79,6 @@ def register():
 def achievements():
     if "user_id" not in session:
         return redirect('/login')
-        
     user_achievements = database.get_user_achievements(session["user_id"])
     user_login = session["user_login"]
     return render_template('achievements.html', achievements=user_achievements, username=user_login)
@@ -98,6 +87,6 @@ def achievements():
 def logout():
     session.clear()
     return redirect(url_for("login"))
-        
+
 if __name__ == "__main__":
     app.run(debug=True)

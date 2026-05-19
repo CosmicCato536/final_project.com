@@ -5,52 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Achievements</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: rgb(57, 52, 46); font-family: sans-serif; color: #ebe2ca; }
-        header { background-color: rgb(37, 35, 36); padding: 30px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid #ba550e; }
-        header h1 { color: rgb(186, 85, 14); text-transform: uppercase; letter-spacing: 1px; }
-        .back-btn { background: #5a5245; color: white; padding: 10px 20px; text-decoration: none; font-weight: bold; text-transform: uppercase; border: 2px solid #2b2622; }
-        .back-btn:hover { background: #ba550e; }
-        .achievements-container { max-width: 800px; margin: 40px auto; background: #2b2622; padding: 30px; border: 8px solid #5a5245; }
-        .ach-row { display: flex; background: #3c352e; border: 3px solid #ba550e; margin-bottom: 15px; padding: 15px; align-items: center; }
-        /* Стиль для заблокированной ачивки */
-        .ach-row.locked { border-color: #5a5245; background: #26211d; opacity: 0.5; }
-        .ach-status { font-weight: bold; text-transform: uppercase; padding: 5px 10px; font-size: 12px; margin-right: 20px; border: 2px solid; }
-        .ach-status.unlocked { color: #5b7a3a; border-color: #5b7a3a; }
-        .ach-status.locked-status { color: #b83838; border-color: #b83838; }
-        .ach-info h2 { font-size: 20px; text-transform: uppercase; color: #ebe2ca; margin-bottom: 5px; }
-        .ach-info p { font-size: 14px; color: #b5ad99; }
+        body { 
+            background-color: rgb(57, 52, 46); 
+            font-family: sans-serif; 
+            color: #ebe2ca; 
+            padding: 40px; 
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+        }
+        h1 { 
+            color: #ba550e; 
+            margin-bottom: 30px; 
+            text-transform: uppercase; 
+        }
+        .back-link { 
+            color: #ba550e; 
+            text-decoration: none; 
+            font-weight: bold; 
+            display: inline-block; 
+            margin-bottom: 20px; 
+        }
+        .back-link:hover { 
+            text-decoration: underline; 
+        }
+        .achievement-card { 
+            background: #3c352e; 
+            border: 3px solid #5a5245; 
+            padding: 20px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            align-items: center; 
+            gap: 20px; 
+        }
+        .achievement-card.unlocked { 
+            border-color: #5b7a3a; 
+        }
+        .status-badge { 
+            padding: 5px 10px; 
+            font-size: 12px; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            color: white; 
+        }
+        .status-badge.locked { 
+            background: #b83838; 
+        }
+        .status-badge.unlocked { 
+            background: #5b7a3a; 
+        }
+        .ach-info h2 { 
+            font-size: 18px; 
+            color: white; 
+            margin-bottom: 5px; 
+        }
+        .ach-info p { 
+            font-size: 14px; 
+            color: #a49a83; 
+        }
     </style>
 </head>
 <body>
-    <header>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Main</a>
         <h1>{{ username }}'s Achievements</h1>
-        <a href="/" class="back-btn">Back to Main</a>
-    </header>
 
-    <main>
-        <div class="achievements-container">
-            {% for ach in achievements %}
-                <!-- ach[3] — это флаг unlocked (1 или 0) -->
-                {% if ach[3] == 1 %}
-                    <div class="ach-row">
-                        <div class="ach-status unlocked">Unlocked</div>
-                        <div class="ach-info">
-                            <h2>{{ ach[1] }}</h2> <!-- Название -->
-                            <p>{{ ach[2] }}</p> <!-- Описание -->
-                        </div>
+        {% for ach in achievements %}
+            {% if ach[3] == 1 %}
+                <div class="achievement-card unlocked">
+                    <span class="status-badge unlocked">Unlocked</span>
+                    <div class="ach-info">
+                        <h2>{{ ach[1] }}</h2>
+                        <p>{{ ach[2] }}</p>
                     </div>
-                {% else %}
-                    <div class="ach-row locked">
-                        <div class="ach-status locked-status">Locked</div>
-                        <div class="ach-info">
-                            <h2>{{ ach[1] }}</h2>
-                            <p>{{ ach[2] }}</p>
-                        </div>
+                </div>
+            {% else %}
+                <div class="achievement-card">
+                    <span class="status-badge locked">Locked</span>
+                    <div class="ach-info">
+                        <h2>{{ ach[1] }}</h2>
+                        <p>{{ ach[2] }}</p>
                     </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-    </main>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
 </body>
 </html>
