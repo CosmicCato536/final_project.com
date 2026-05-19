@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TF2 Site</title>
-    <!-- Подключаем иконки Font Awesome для отображения пальца вверх -->
-    <link rel="stylesheet" href="https://cloudflare.com">
     <style>
         * {
             margin: 0;
@@ -35,25 +33,62 @@
             display: block;
             margin-top: 20px;
         }
-        .logout-btn {
+        .user-dropdown {
             position: absolute;
             top: 40px;
             right: 20px;
-            background: #5a5245;
-            color: white;
-            padding: 8px 15px;
-            text-decoration: none;
-            font-weight: bold;
+            display: inline-block;
+            z-index: 100;
+        }
+        .dropdown-btn {
+            background: #ba550e;
+            color: #ebe2ca;
+            padding: 10px 20px;
             font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 2px solid #5a5245;
+            cursor: pointer;
+            letter-spacing: 1px;
         }
-        .logout-btn:hover {
-            background: #b83838;
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #3c352e;
+            min-width: 180px;
+            border: 3px solid #ba550e;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
         }
-        
-        /* Сетка 3х3 */
+        .dropdown-content a {
+            color: #ebe2ca;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #5a5245;
+        }
+        .dropdown-content a:last-child {
+            border-bottom: none;
+        }
+        .dropdown-content a:hover {
+            background-color: #5a5245;
+            color: white;
+        }
+        .dropdown-content a.logout-item:hover {
+            background-color: #b83838;
+        }
+        .user-dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .user-dropdown:hover .dropdown-btn {
+            background: #d15f10;
+        }
         .character-grid {
             display: grid;
-            grid-template-columns: repeat(3, 240px); /* Ровно 3 колонки */
+            grid-template-columns: repeat(3, 240px);
             gap: 20px;                               
             justify-content: center;                 
             background: #2b2622;                     
@@ -62,8 +97,6 @@
             margin: 40px auto;
             width: fit-content;
         }
-
-        /* Карточка персонажа */
         .char-card {
             background: #3c352e;
             border: 4px solid #ba550e;               
@@ -73,8 +106,6 @@
             flex-direction: column;
             justify-content: space-between;
         }
-
-        /* Название класса */
         .char-name {
             color: #ebe2ca;
             font-size: 18px;
@@ -83,8 +114,6 @@
             margin-bottom: 10px;
             letter-spacing: 1px;
         }
-
-        /* Изображение персонажа из базы данных */
         .char-card img {
             width: 100%;                             
             height: 160px;                           
@@ -93,16 +122,12 @@
             background: #1a1715;                     
             margin-bottom: 12px;
         }
-
-        /* Контейнер кнопок (в одну линию) */
         .controls {
             display: flex;
             gap: 6px;             
             margin-top: auto;
             width: 100%;          
         }
-
-        /* Базовые стили кнопок */
         .like-btn, .desc-btn {
             display: inline-flex;
             align-items: center;
@@ -117,34 +142,27 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-
-        /* Маленькая кнопка LIKE слева */
         .like-btn {
             background: #ba550e;
-            flex: 0 0 42%;        /* Чуть увеличили ширину под цифру */
+            flex: 0 0 42%;        
             gap: 5px;
         }
         .like-btn:hover {
             background: #d15f10;
         }
-
-        /* Большая кнопка DESCRIPTION справа */
         .desc-btn {
             background: #5a5245; 
-            flex: 0 0 58%;        /* Занимает оставшуюся ширину */
+            flex: 0 0 58%;        
         }
-        .desc-btn:hover {background: #6e6454;
+        .desc-btn:hover {
+            background: #6e6454;
         }
-
-        /* Зеленая подсветка выбранного лайка */
         .like-btn.active {
             background: #5b7a3a; 
         }
         .like-btn.active:hover {
             background: #47612d;
         }
-        
-        /* Блок под счетчик лайков */
         .like-count {
             background: rgba(0, 0, 0, 0.3);
             padding: 1px 5px;
@@ -157,42 +175,43 @@
 <body>
     <header>
         <img src="{{ url_for('static', filename='img/tf2.gif') }}" alt="logo gif" height="64" width="64">
-        <h1>Just TF2 site</h1>
+        <h1>TF2 site</h1>
         <h3>By CosmicCato536</h3>
-        <a href="/logout" class="logout-btn">Logout</a>
+        
+        <div class="user-dropdown">
+            <button class="dropdown-btn">USER: {{ username }}</button>
+            <div class="dropdown-content">
+                <a href="/achievements">Achievements</a>
+                <a href="/login">Switch Accounts</a>
+                <a href="/logout" class="logout-item">Logout</a>
+            </div>
+        </div>
     </header>
     
     <main>
-        <div class="character-grid">
-            <!-- Автоматический перебор всех 9 персонажей из таблицы character -->
-            {% for char in characters %}
-            <div class="char-card">
-                <!-- char[1] — имя класса (Scout, Soldier...) -->
-                <div class="char-name">{{ char[1] }}</div>
-                
-                <!-- char[2] — готовый путь из базы (static/img/scout.png...) -->
-                <img src="{{ char[2] }}" alt="Character Image">
-                
-                <div class="controls">
-                    <!-- Сверяем ID персонажа char[0] с голосом текущего пользователя user_vote -->
-                    <!-- Внутри тега <span> выводим количество лайков из базы char[3] -->
-                    {% if user_vote == char[0] %}
-                        <a href="/like/{{ char[0] }}" class="like-btn active">
-                            <i class="fa-solid fa-thumbs-up"></i> LIKE <span class="like-count">{{ char[3] }}</span>
-                        </a>
-                    {% else %}
-                        <a href="/like/{{ char[0] }}" class="like-btn">
-                            <i class="fa-solid fa-thumbs-up"></i> LIKE <span class="like-count">{{ char[3] }}</span>
-                        </a>
-                    {% endif %}
-                    
-                    <!-- Кнопка Description передает ID персонажа char[0] -->
-                    <a href="/description/{{ char[0] }}" class="desc-btn">Description</a>
-                </div>
+    <div class="character-grid">
+        {% for char in characters %}
+        <div class="char-card">
+            <div class="char-name">{{ char[1] }}</div>
+            <img src="{{ char[2] }}" alt="Character Image">
+            
+            <div class="controls">
+                {% if user_vote == char[0] %}
+                    <a href="/like/{{ char[0] }}" class="like-btn active">
+                        LIKE <span class="like-count">{{ char[3] }}</span>
+                    </a>
+                {% else %}
+                    <a href="/like/{{ char[0] }}" class="like-btn">
+                        LIKE <span class="like-count">{{ char[3] }}</span>
+                    </a>
+                {% endif %}
+                <a href="/info/{{ char[0] }}" class="desc-btn">Description</a>
             </div>
-            {% endfor %}
         </div>
-    </main>
+        {% endfor %}
+    </div>
+</main>
+
     
     <footer></footer>
 </body>

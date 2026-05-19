@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ char.name }} Info</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: rgb(57, 52, 46); font-family: sans-serif; color: #ebe2ca; padding: 20px; }
+        .info-container { max-width: 600px; margin: 50px auto; background: #2b2622; border: 6px solid #ba550e; padding: 25px; text-align: center; }
+        h1 { color: #ba550e; text-transform: uppercase; margin-bottom: 15px; }
+        img { max-height: 200px; object-fit: contain; margin-bottom: 15px; background: #1a1715; padding: 10px; border: 2px solid #5a5245; }
+        .stats { margin: 15px 0; text-align: left; background: #3c352e; padding: 15px; border: 2px solid #5a5245; }
+        .stats p { margin-bottom: 8px; font-size: 16px; }
+        .back-link { display: inline-block; margin-top: 20px; color: #ba550e; font-weight: bold; text-decoration: none; text-transform: uppercase; }
+        .back-link:hover { color: #ebe2ca; }
+    </style>
+</head>
+<body>
+    <div class="info-container">
+        <h1>{{ char.name }}</h1>
+        <img src="/{{ char.img_path }}" alt="{{ char.name }}">
+        
+        <div class="stats">
+            <p><strong>Health Points (HP):</strong> {{ char.hp }}</p>
+            <p><strong>Total Likes:</strong> {{ char.likes }}</p>
+            
+            <p><strong>Weapons:</strong></p>
+            {% if char.weapons %}
+                <ul>
+                {% for weapon in char.weapons %}
+                    <li>{{ weapon.name }} — {{ weapon.specs }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>No weapons added yet.</p>
+            {% endif %}
+        </div>
+        
+        <a href="/" class="back-link">Back to Roster</a>
+    </div>
+</body>
+</html>

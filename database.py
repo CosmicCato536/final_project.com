@@ -5,7 +5,6 @@ def create_db():
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
 
-    # Таблица пользователей
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS user (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14,7 +13,6 @@ def create_db():
         voted_for INTEGER DEFAULT 0      
     )''')
 
-    # Таблица способностей
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS abilities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,7 +20,6 @@ def create_db():
         )
     ''')
 
-    # Таблица оружия
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS weapons (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,7 +28,6 @@ def create_db():
         )
     ''')
 
-    # Таблица персонажей
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS character (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,7 +39,6 @@ def create_db():
         )
     ''')
 
-    # Таблицы связей
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS character_abilities (
             character_id INTEGER,
@@ -71,6 +66,20 @@ def create_db():
         PRIMARY KEY (user_id, char_id) 
     )''')
 
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS achievements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title VARCHAR(100) NOT NULL,
+        description VARCHAR(500) NOT NULL
+    )''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS user_achievements (
+        user_id INTEGER,
+        achievement_id INTEGER,
+        PRIMARY KEY (user_id, achievement_id)
+    )''')
+
     conn.commit()
     conn.close()
 
@@ -93,18 +102,33 @@ def fill_characters():
     
     cursor.execute("DELETE FROM character")
     for name, path in chars:
-        cursor.execute("INSERT INTO character (name, img_path, likes) VALUES (?, ?, 0)", (name, path))
+        cursor.execute("INSERT INTO character (name, img_path, likes, hp) VALUES (?, ?, 0, 125)", (name, path))
     
     conn.commit()
     conn.close()
-    print("Наемники зачислены в базу!")
 
 
-# ЭТА ФУНКЦИЯ ТЕПЕРЬ ДОСТУПНА ДЛЯ ИМПОРТА В app.py
+def fill_achievements():
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    
+    achievements_list = [
+        ("First Blood", "Cast your very first vote for any mercenary on the site."),
+        ("Is Doctor In?", "Show respect to the support class and like Medic."),
+        ("The Spy Among Us", "Switch your account profile using the top right menu.")
+    ]
+    
+    cursor.execute("DELETE FROM achievements")
+    for title, desc in achievements_list:
+        cursor.execute("INSERT INTO achievements (title, description) VALUES (?, ?)", (title, desc))
+        
+    conn.commit()
+    conn.close()
+
+
 def get_characters():
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
-    # Вытягиваем: id (0), name (1), img_path (2), likes (3)
     cursor.execute("SELECT id, name, img_path, likes FROM character")
     characters = cursor.fetchall()
     conn.close()
@@ -129,18 +153,26 @@ def toggle_like(user_id, char_id):
     old_vote = res[0] if res else 0
 
     if old_vote == char_id:
-        # Отмена текущего лайка
         cursor.execute("UPDATE character SET likes = likes - 1 WHERE id = ?", (char_id,))
         cursor.execute("UPDATE user SET voted_for = 0 WHERE id = ?", (user_id,))
     else:
-        # Если ранее был лайкнут другой персонаж, снимаем с него голос
         if old_vote != 0:
             cursor.execute("UPDATE character SET likes = likes - 1 WHERE id = ?", (old_vote,))
         
-        # Записываем новый голос
         cursor.execute("UPDATE character SET likes = likes + 1 WHERE id = ?", (char_id,))
         cursor.execute("UPDATE user SET voted_for = ? WHERE id = ?", (char_id, user_id))
         
+    conn.commit()
+    
+    cursor.execute("SELECT 1 FROM user_achievements WHERE user_id = ? AND achievement_id = 1", (user_id,))
+    if not cursor.fetchone():
+        cursor.execute("INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, 1)", (user_id, 1))
+        
+    if char_id == 7:
+        cursor.execute("SELECT 1 FROM user_achievements WHERE user_id = ? AND achievement_id = 2", (user_id,))
+        if not cursor.fetchone():
+            cursor.execute("INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, 2)", (user_id, 2))
+            
     conn.commit()
     conn.close()
 
@@ -150,7 +182,6 @@ def add_user(login, password):
     cursor = conn.cursor()
     hashed_password = generate_password_hash(password)
     cursor.execute("INSERT INTO user (login, password) VALUES (?, ?)", (login, hashed_password))
-    print("Created user " + login)
     conn.commit()
     conn.close()
 
@@ -164,19 +195,10 @@ def is_user_exists(login):
     return user is not None
 
 
-def get_users():
-    conn = sqlite3.connect("data.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM user")
-    users = cursor.fetchall()
-    conn.close()
-    return users
-
-
 def auth_user(login, password):
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM user WHERE login=?", (login,))
+    cursor.execute("SELECT id, login, password FROM user WHERE login=?", (login,))
     user = cursor.fetchone()
     conn.close()
     
@@ -192,6 +214,58 @@ def auth_user(login, password):
         return -1
 
 
+def get_user_achievements(user_id):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT a.id, a.title, a.description, 
+               CASE WHEN ua.achievement_id IS NOT NULL THEN 1 ELSE 0 END as unlocked
+        FROM achievements a
+        LEFT JOIN user_achievements ua ON a.id = ua.achievement_id AND ua.user_id = ?
+    ''', (user_id,))
+    achievements = cursor.fetchall()
+    conn.close()
+    return achievements
+
+
+def get_char_details(char_id):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, img_path, likes, hp FROM character WHERE id = ?", (char_id,))
+    char_row = cursor.fetchone()
+    
+    if not char_row:
+        conn.close()
+        return None
+
+    char_data = {
+        "id": char_row[0],
+        "name": char_row[1],
+        "img_path": char_row[2],
+        "likes": char_row[3],
+        "hp": char_row[4],
+        "abilities": [],
+        "weapons": []
+    }
+
+    cursor.execute('''
+        SELECT a.text FROM abilities a
+        JOIN character_abilities ca ON a.id = ca.ability_id
+        WHERE ca.character_id = ?
+    ''', (char_id,))
+    char_data["abilities"] = [row[0] for row in cursor.fetchall()]
+
+    cursor.execute('''
+        SELECT w.name, w.specifications FROM weapons w
+        JOIN character_weapons cw ON w.id = cw.weapon_id
+        WHERE cw.character_id = ?
+    ''', (char_id,))
+    char_data["weapons"] = [{"name": row[0], "specs": row[1]} for row in cursor.fetchall()]
+
+    conn.close()
+    return char_data
+
 if __name__ == "__main__":
     create_db()
     fill_characters()
+    fill_achievements()
