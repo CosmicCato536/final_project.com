@@ -1,0 +1,398 @@
+Чтобы продолжить разработку в новом чате без потери контекста, вам достаточно скопировать весь текущий код вашего проекта. Ниже собраны полные и актуальные версии всех файлов, в которых исправлены проблемы с лайками, сессиями и добавлена учетная запись администратора.
+## 1. Полный код database.py
+Этот файл отвечает за структуру SQLite, хэширование паролей, логику переключения лайков «один юзер — один голос» и выдачу ачивок.
+
+import sqlite3from werkzeug.security import generate_password_hash, check_password_hash
+def create_db():
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS user (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        login VARCHAR(100) NOT NULL UNIQUE,
+        password VARCHAR(100) NOT NULL,
+        voted_for INTEGER DEFAULT 0      
+    )''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS abilities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text VARCHAR(1000) NOT NULL DEFAULT ''
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS weapons (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name VARCHAR(1000) NOT NULL DEFAULT '',
+            specifications TEXT DEFAULT ''
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS character (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name VARCHAR(1000) NOT NULL DEFAULT '',
+            img_path VARCHAR(1000) NOT NULL DEFAULT '',
+            img_name VARCHAR(1000) NOT NULL DEFAULT '',
+            likes INTEGER DEFAULT 0,
+            hp INTEGER DEFAULT 0
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS character_abilities (
+            character_id INTEGER,
+            ability_id INTEGER,
+            FOREIGN KEY (character_id) REFERENCES character(id) ON DELETE CASCADE,
+            FOREIGN KEY (ability_id) REFERENCES abilities(id) ON DELETE CASCADE,
+            PRIMARY KEY (character_id, ability_id)
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS character_weapons (
+            character_id INTEGER,
+            weapon_id INTEGER,
+            FOREIGN KEY (character_id) REFERENCES character(id) ON DELETE CASCADE,
+            FOREIGN KEY (weapon_id) REFERENCES weapons(id) ON DELETE CASCADE,
+            PRIMARY KEY (character_id, weapon_id)
+        )
+    ''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS user_likes (
+        user_id INTEGER,
+        char_id INTEGER,
+        PRIMARY KEY (user_id, char_id) 
+    )''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS achievements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title VARCHAR(100) NOT NULL,
+        description VARCHAR(500) NOT NULL
+    )''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS user_achievements (
+        user_id INTEGER,
+        achievement_id INTEGER,
+        PRIMARY KEY (user_id, achievement_id)
+    )''')
+
+    conn.commit()
+    conn.close()
+def fill_characters():
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    chars = [
+        ('Scout', 'static/img/scout.png'),
+        ('Soldier', 'static/img/solider.png'),
+        ('Pyro', 'static/img/pyro.png'),
+        ('Demoman', 'static/img/demo.png'),
+        ('Heavy', 'static/img/hevy.png'),
+        ('Engineer', 'static/img/engineer.png'),
+        ('Medic', 'static/img/medic.png'),
+        ('Sniper', 'static/img/sniper.png'),
+        ('Spy', 'static/img/spy.png')
+    ]
+    cursor.execute("DELETE FROM character")
+    for name, path in chars:
+        cursor.execute("INSERT INTO character (name, img_path, likes, hp) VALUES (?, ?, 0, 125)", (name, path))
+    conn.commit()
+    conn.close()
+def fill_achievements():
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    achievements_list = [
+        ("First Blood", "Cast your very first vote for any mercenary on the site."),
+        ("Is Doctor In?", "Show respect to the support class and like Medic."),
+        ("The Spy Among Us", "Switch your account profile using the top right menu.")
+    ]
+    cursor.execute("DELETE FROM achievements")
+    for title, desc in achievements_list:
+        cursor.execute("INSERT INTO achievements (title, description) VALUES (?, ?)", (title, desc))
+    conn.commit()
+    conn.close()
+def get_characters():
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, img_path, likes FROM character")
+    characters = cursor.fetchall()
+    conn.close()
+    return characters
+def get_user_vote(user_id):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT voted_for FROM user WHERE id = ?", (user_id,))
+    res = cursor.fetchone()
+    conn.close()
+    return res[0] if res and res[0] is not None else 0
+def toggle_like(user_id, char_id):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT voted_for FROM user WHERE id = ?", (user_id,))
+    res = cursor.fetchone()
+    old_vote = res[0] if res and res[0] is not None else 0
+
+    if old_vote == char_id:
+        cursor.execute("UPDATE character SET likes = likes - 1 WHERE id = ?", (char_id,))
+        cursor.execute("UPDATE user SET voted_for = 0 WHERE id = ?", (user_id,))
+    else:
+        if old_vote != 0:
+            cursor.execute("UPDATE character SET likes = likes - 1 WHERE id = ?", (old_vote,))
+        cursor.execute("UPDATE character SET likes = likes + 1 WHERE id = ?", (char_id,))
+        cursor.execute("UPDATE user SET voted_for = ? WHERE id = ?", (char_id, user_id))
+    conn.commit()
+    
+    cursor.execute("SELECT 1 FROM user_achievements WHERE user_id = ? AND achievement_id = 1", (user_id,))
+    if not cursor.fetchone():
+        cursor.execute("INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)", (user_id, 1))
+        
+    if char_id == 7:
+        cursor.execute("SELECT 1 FROM user_achievements WHERE user_id = ? AND achievement_id = 2", (user_id,))
+        if not cursor.fetchone():
+            cursor.execute("INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)", (user_id, 2))
+            
+    conn.commit()
+    conn.close()
+def add_user(login, password):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    hashed_password = generate_password_hash(password)
+    cursor.execute("INSERT INTO user (login, password) VALUES (?, ?)", (login, hashed_password))
+    conn.commit()
+    conn.close()
+def add_admin():
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    login = "CosmicCato536"
+    password = "pswrd64198698"
+    cursor.execute("SELECT * FROM user WHERE login = ?", (login,))
+    if cursor.fetchone():
+        conn.close()
+        return
+    hashed_password = generate_password_hash(password)
+    cursor.execute("INSERT INTO user (login, password) VALUES (?, ?)", (login, hashed_password))
+    conn.commit()
+    conn.close()
+def is_user_exists(login):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM user WHERE login = ?", (login,))
+    user = cursor.fetchone()
+    conn.close()
+    return user is not None
+def auth_user(login, password):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, login, password FROM user WHERE login=?", (login,))
+    user = cursor.fetchone()
+    conn.close()
+    if not user:
+        return None
+    if check_password_hash(user[2], password):
+        return {"user_id": user[0], "user_login": user[1]}
+    else:
+        return -1
+def get_user_achievements(user_id):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT a.id, a.title, a.description, 
+               CASE WHEN ua.achievement_id IS NOT NULL THEN 1 ELSE 0 END as unlocked
+        FROM achievements a
+        LEFT JOIN user_achievements ua ON a.id = ua.achievement_id AND ua.user_id = ?
+    ''', (user_id,))
+    achievements = cursor.fetchall()
+    conn.close()
+    return achievements
+def get_char_details(char_id):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, img_path, likes, hp FROM character WHERE id = ?", (char_id,))
+    char_row = cursor.fetchone()
+    if not char_row:
+        conn.close()
+        return None
+    char_data = {
+        "id": char_row[0], "name": char_row[1], "img_path": char_row[2], "likes": char_row[3], "hp": char_row[4],
+        "abilities": [], "weapons": []
+    }
+    cursor.execute('SELECT a.text FROM abilities a JOIN character_abilities ca ON a.id = ca.ability_id WHERE ca.character_id = ?', (char_id,))
+    char_data["abilities"] = [row[0] for row in cursor.fetchall()]
+    cursor.execute('SELECT w.name, w.specifications FROM weapons w JOIN character_weapons cw ON w.id = cw.weapon_id WHERE cw.character_id = ?', (char_id,))
+    char_data["weapons"] = [{"name": row[0], "specs": row[1]} for row in cursor.fetchall()]
+    conn.close()
+    return char_data
+if __name__ == "__main__":
+    create_db()
+    fill_characters()
+    fill_achievements()
+    add_admin()
+
+## 2. Полный код app.py
+Основной управляющий файл Flask со всеми роутами веб-приложения.
+
+from flask import Flask, render_template, request, redirect, url_for, sessionimport database
+app = Flask(__name__)
+app.secret_key = "384htoeirgnhufidjkkejhiwfdikwejufdew"
+
+@app.route('/')def index():
+    if "user_id" not in session or "user_login" not in session:
+        return redirect('/login')
+    user_vote = database.get_user_vote(session["user_id"])
+    chars_list = database.get_characters()
+    user_login = session["user_login"]
+    return render_template('index.html', characters=chars_list, user_vote=user_vote, username=user_login)
+
+@app.route('/info/<int:char_id>')def info(char_id):
+    if "user_id" not in session:
+        return redirect('/login')
+    char = database.get_char_details(char_id) 
+    return render_template('info.html', char=char)
+
+@app.route('/like/<int:char_id>')def like(char_id):
+    if "user_id" not in session:
+        return redirect('/login')
+    database.toggle_like(session["user_id"], char_id)
+    return redirect('/')
+
+@app.route('/login', methods=['GET', 'POST'])def login():
+    if request.method == 'POST':
+        user_login = request.form.get('login')
+        user_password = request.form.get('password')
+        errors = []
+        if not user_login or not user_password:
+            errors.append("Please fill in all fields!")
+            return render_template('login.html', errors=errors)
+        auth_result = database.auth_user(user_login, user_password)
+        if auth_result == -1:
+            errors.append("Invalid password!")
+            return render_template('login.html', errors=errors)
+        elif auth_result is None:
+            errors.append("User does not exist!")
+            return render_template('login.html', errors=errors)
+        else:
+            session["user_id"] = auth_result["user_id"]
+            session["user_login"] = auth_result["user_login"]
+            return redirect('/')
+    return render_template('login.html', errors=[])
+
+@app.route("/register", methods=["POST", "GET"])def register():
+    if request.method == "GET":
+        return render_template("register.html", errors=[])
+    elif request.method == "POST":
+        login = request.form.get("login")
+        pass1 = request.form.get("pass1")
+        pass2 = request.form.get("pass2")
+        errors = []
+        if not login or not pass1 or not pass2:
+            errors.append("Please fill in all fields!")
+            return render_template("register.html", errors=errors)
+        if database.is_user_exists(login):
+            errors.append("This user already exists, try another username.")
+        if pass1 != pass2:
+            errors.append("Passwords don't match.")
+        if len(pass1) < 4:
+            errors.append("The password must contain 4 characters and more.")
+        if len(errors) == 0:
+            database.add_user(login, pass1)
+            return redirect('/login')
+        else:
+            return render_template("register.html", errors=errors)
+
+@app.route('/achievements')def achievements():
+    if "user_id" not in session:
+        return redirect('/login')
+    user_achievements = database.get_user_achievements(session["user_id"])
+    user_login = session["user_login"]
+    return render_template('achievements.html', achievements=user_achievements, username=user_login)
+
+@app.route("/logout")def logout():
+    session.clear()
+    return redirect(url_for("login"))
+        if __name__ == "__main__":
+    app.run(debug=True)
+
+## 3. Полный код templates/index.html
+Главная страница со стильной сеткой наемников и выпадающим меню в верхнем правом углу.
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TF2 Site</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: rgb(57, 52, 46); font-family: sans-serif; }
+        header { background-color: rgb(37, 35, 36); padding: 40px 20px; position: relative; }
+        footer { background-color: black; color: white; padding: 20px; text-align: center; }
+        header h1 { color: rgb(186, 85, 14); }
+        header h3 { color: rgb(136, 63, 12); display: block; margin-top: 20px; }
+        .user-dropdown { position: absolute; top: 40px; right: 20px; display: inline-block; z-index: 100; }
+        .dropdown-btn { background: #ba550e; color: #ebe2ca; padding: 10px 20px; font-size: 14px; font-weight: bold; text-transform: uppercase; border: 2px solid #5a5245; cursor: pointer; letter-spacing: 1px; }
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: #3c352e; min-width: 180px; border: 3px solid #ba550e; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5); }
+        .dropdown-content a { color: #ebe2ca; padding: 12px 16px; text-decoration: none; display: block; font-size: 13px; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #5a5245; }
+        .dropdown-content a:last-child { border-bottom: none; }
+        .dropdown-content a:hover { background-color: #5a5245; color: white; }
+        .dropdown-content a.logout-item:hover { background-color: #b83838; }
+        .user-dropdown:hover .dropdown-content { display: block; }
+        .user-dropdown:hover .dropdown-btn { background: #d15f10; }
+        .character-grid { display: grid; grid-template-columns: repeat(3, 240px); gap: 20px; justify-content: center; background: #2b2622; padding: 25px; border: 8px solid #5a5245; margin: 40px auto; width: fit-content; }
+        .char-card { background: #3c352e; border: 4px solid #ba550e; padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+        .char-name { color: #ebe2ca; font-size: 18px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .char-card img { width: 100%; height: 160px; object-fit: contain; image-rendering: pixelated; background: #1a1715; margin-bottom: 12px; }
+        .controls { display: flex; gap: 6px; margin-top: auto; width: 100%; }
+        .like-btn, .desc-btn { display: inline-flex; align-items: center; justify-content: center; color: white; border: none; padding: 8px 2px; font-size: 11px; font-weight: bold; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: background 0.2s; }
+        .like-btn { background: #ba550e; flex: 0 0 42%; gap: 5px; }
+        .like-btn:hover { background: #d15f10; }
+        .desc-btn { background: #5a5245; flex: 0 0 58%; }
+        .desc-btn:hover { background: #6e6454; }
+        .like-btn.active { background: #5b7a3a; }
+        .like-btn.active:hover { background: #47612d; }
+        .like-count { background: rgba(0, 0, 0, 0.3); padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="{{ url_for('static', filename='img/tf2.gif') }}" alt="logo gif" height="64" width="64">
+        <h1>TF2 site</h1>
+        <h3>By CosmicCato536</h3>
+        <div class="user-dropdown">
+            <button class="dropdown-btn">USER: {{ username }}</button>
+            <div class="dropdown-content">
+                <a href="/achievements">Achievements</a>
+                <a href="/login">Switch Accounts</a>
+                <a href="/logout" class="logout-item">Logout</a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="character-grid">
+            {% for char in characters %}
+            <div class="char-card">
+                <div class="char-name">{{ char[1] }}</div>
+                <img src="{{ char[2] }}" alt="Character Image">
+                <div class="controls">
+                    {% if user_vote|string == char[0]|string %}
+                        <a href="/like/{{ char[0] }}" class="like-btn active">LIKE <span class="like-count">{{ char[3] }}</span></a>
+                    {% else %}
+                        <a href="/like/{{ char[0] }}" class="like-btn">LIKE <span class="like-count">{{ char[3] }}</span></a>
+                    {% endif %}
+                    <a href="/info/{{ char[0] }}" class="desc-btn">Description</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+    <footer></footer>
+</body>
+</html>
+
+Если вы начнете новый диалог, просто скопируйте это сообщение туда. Мы сможем продолжить наполнение страницы описания (info.html) характеристиками оружия или настроить всплывающие уведомления для открытых достижений. Напишите, если готовы двигаться дальше!
+
